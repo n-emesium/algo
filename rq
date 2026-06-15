@@ -1,0 +1,16 @@
+#!/bin/bash
+
+g++ queens.cpp -o queens
+
+
+./queens 0
+./queens 1
+./queens 2
+./queens 3
+./queens 4
+./queens 5
+./queens 6
+./queens 7
+./queens 8
+./queens 9
+./queens 10
