@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define ll signed long long
+#define ull unsigned long long
+#define uint unsigned int
+#define uchar unsigned char
+#define uint unsigned int
+#define umap unordered_map
+#define uset unordered_set
+#define pb push_back
+#define pop pop_back
+#define all(x) (x).begin(), (x).end()
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define abs(a) ((a) < 0 ? -(a) : (a))
+#define SIZE 100
+#define RANGE 4096
+static int bw_and = RANGE - 1;
+static int fail_count = 0;
+#include <time.h>
+#include <stdlib.h>
+#include <limits.h>
+vector<int> solve(vector<int>&, int), slow_solve(vector<int>&, int);
+ostream& operator<<(ostream& os, vector<int>& v) {
+    int t = v.size();
+    for (int i = 0; i < t; i++) os << v[i] << " ";
+    return os;
+}
+//give the largest element of window length k for each window, return as a vector
+void test_case(vector<int>& ref, int k) {
+    vector<int> v1, v2;
+    if (!ref.size() && k == -1) { //then generate a random test
+        for (int i = 0; i < SIZE; i++) {
+            ref.pb(rand() & bw_and);
+        }
+        k = (rand() % SIZE) | 1;
+        v1 = slow_solve(ref, k);
+    }
+    v1 = slow_solve(ref, k), v2 = solve(ref, k);
+    cout << "Printing contents of arr:\n" << ref << "\n\n";
+    // cout << "Printing max elements from each window for arr 1:\n" << v1 << "\n\n";
+    cout << "For window length: " << k << " -- printing max elements from each window for arr using first solution:\n" << v1 << "\n\n";
+    // cout << "Printing max elements from each window for arr 1:\n" << v1 << "\n\n";
+    cout << "For window length: " << k << " -- printing max elements from each window for arr using second solution:\n" << v2 << "\n\n";
+
+    // if (v1 != v2) cout << "Vectors do not match, one function is wrong" << endl;
+    // else cout << "Both solutions are correct!" << endl;
+    int vs = v1.size();
+    if (vs ^ v2.size()) goto err;
+    for (int i = 0; i < vs; i++) {
+        if (v1[i] != v2[i]) {
+            cout << "\n\n" << v1[i] << " != " << v2[i] << endl;
+            cout << "At index: " << i << endl;
+            goto err;
+        }
+    }
+    ref.clear();
+    cout << "Vectors do match, both solutions are correct!" << endl;
+    return;
+err:
+    fail_count++;
+    cout << "Vectors do not match, one function is wrong" << endl;
+
+}
+
+static inline int matoi(char *s) {
+    int c = 0;
+    while (*s && (c = 10 * c + (*s++ - '0')));
+    return c;
+}
+int main(int argc, char *argv[]) {
+    srand(time(NULL));
+    vector<int> v;
+    int upto;
+    if (argc == 1) upto = SIZE;
+    else upto = matoi(argv[1]);
+    for (int i = 0; i < upto; i++) test_case(v, -1);
+    cout << "Tried: " << upto << " times\n";
+    if (!fail_count) cout << "Didn't fail at all! Nice!\n";
+    else cout << "Failed: " << fail_count << " times. \n";
+    // test_case(v, -1);
+    // v = { 1,3,-1,-3,5,3,6,7 };
+    // test_case(v, 3);
+    return 0;
+}
+//O(n * k) shittiest way possible
+//basically check every possible window over and over again
+vector<int> slow_solve(vector<int>& v, int k) {
+    vector<int> ans;
+    int upto = v.size() - k, track;
+    //last element = n - 1 --> n - 1 - k + 1 = n - k
+    for (int i = 0; i <= upto; i++) {
+        track = INT_MIN;
+        for (int j = i; j < i + k; j++) track = max(track, v[j]);
+        ans.pb(track);
+    }
+    return ans;
+}
+
+//core idea behind speedup
+//move a sliding window
+//you pop an element from start and push a new one at end
+//this looks like a queue
+//what if you explicitly knew the max for the first possible window
+//then slided that
+//problem? how do you know what element you removed?
+//observation: is it possible to consider only some candidates?
+//if I am guaranteed to pop from the start and push to the end
+//does it make sense to keep a smaller element coming before a larger?
+//no, because that window will remove the smaller first, so it can never be max
+//but because i can use a max candidate, i need to be able to pop from the start
+//so not a queue, a deque
+vector<int> solve(vector<int>& v, int k) {
+    vector<int> ans;
+    deque<int> dq;
+    int upto = v.size() - k, c;
+    for (int i = 0; i < k; i++) {
+        c = v[i];
+        while (!dq.empty() && dq.back() < c) dq.pop_back();
+        dq.pb(c);
+    }
+    //first window constructed, now slide
+    ans.pb(dq[0]);
+    for (int i = 1; i <= upto; i++) {
+        c = v[i + k - 1];
+        while (!dq.empty() && dq.back() < c) dq.pop_back();
+        dq.pb(c);
+        if (v[i - 1] == dq[0]) dq.pop_front();
+        ans.pb(dq[0]);
+    }
+    return ans;
+}
