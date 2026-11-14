@@ -19,6 +19,7 @@ int solve(int r, int c, char *grid, int k, int sr, int sc) {
     char seen[r * c], dr[] = {1, -1, 0, 0}, dc[] = {0, 0, 1, -1}; memset(seen, 0, sizeof(seen));
     int count = acc(grid, sr, sc) != WALL_CHAR, t, nr, nc;
     if (!count) return 0; //starting at a wall
+    acc(seen, sr, sc) = 1;
     for (int i = 0; i < k && !expl.empty(); i++) { //at most k many steps
         vector<pair<int, int>> next;
         t = expl.size();
